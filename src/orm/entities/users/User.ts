@@ -9,6 +9,7 @@ export class User {
   id: number;
 
   @Column({
+    length: 100,
     unique: true,
   })
   email: string;
@@ -17,15 +18,22 @@ export class User {
   password: string;
 
   @Column({
+    length: 40,
     nullable: true,
     unique: true,
   })
   username: string;
 
   @Column({
+    length: 40,
     nullable: true,
   })
   name: string;
+
+  @Column({
+    nullable: true,
+  })
+  bio: string;
 
   @Column({
     default: 'STANDARD' as Role,
