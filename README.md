@@ -38,17 +38,13 @@
 ## 3. Результати тестування (Postman Screenshots)
 
 ### 1. Створення клієнта (`POST /v1/clients`)
-
-![POST Client](docs/screenshots/post_client.jpg)
+![POST Client](docs/screenshots/post_clients.jpg)
 
 ### 2. Створення замовлення (`POST /v1/orders`)
-
-![POST Order](docs/screenshots/post_order.jpg)
+![POST Order](docs/screenshots/post_orders.jpg)
 
 ### 3. Отримання списку замовлень з автоматичним JOIN (`GET /v1/orders`)
-
 ![GET Orders JOIN](docs/screenshots/get_orders.jpg)
 
 ### 4. Отримання клієнта з масивом замовлень (`GET /v1/clients/1`)
-
-![GET Client Orders](docs/screenshots/get_client.jpg)
+![GET Client Orders](docs/screenshots/get_clients.jpg)
