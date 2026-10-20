@@ -1,17 +1,17 @@
-import { getRepository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 
 import { Client } from '../orm/entities/clients/Client';
 
 export class ClientService {
-  private static get repository() {
+  private get repository(): Repository<Client> {
     return getRepository(Client);
   }
 
-  static async getAll() {
+  async findAll(): Promise<Client[]> {
     return await this.repository.createQueryBuilder('client').leftJoinAndSelect('client.orders', 'orders').getMany();
   }
 
-  static async getById(id: number) {
+  async findOne(id: number): Promise<Client | null> {
     return await this.repository
       .createQueryBuilder('client')
       .leftJoinAndSelect('client.orders', 'orders')
@@ -19,17 +19,17 @@ export class ClientService {
       .getOne();
   }
 
-  static async create(data: Partial<Client>) {
+  async create(data: Partial<Client>): Promise<Client> {
     const client = this.repository.create(data);
     return await this.repository.save(client);
   }
 
-  static async update(id: number, data: Partial<Client>) {
+  async update(id: number, data: Partial<Client>): Promise<Client | null> {
     await this.repository.update(id, data);
-    return await this.getById(id);
+    return await this.findOne(id);
   }
 
-  static async delete(id: number) {
-    return await this.repository.delete(id);
+  async delete(id: number): Promise<void> {
+    await this.repository.delete(id);
   }
 }

@@ -1,17 +1,17 @@
-import { getRepository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 
 import { Order } from '../orm/entities/orders/Order';
 
 export class OrderService {
-  private static get repository() {
+  private get repository(): Repository<Order> {
     return getRepository(Order);
   }
 
-  static async getAll() {
+  async findAll(): Promise<Order[]> {
     return await this.repository.createQueryBuilder('order').leftJoinAndSelect('order.client', 'client').getMany();
   }
 
-  static async getById(id: number) {
+  async findOne(id: number): Promise<Order | null> {
     return await this.repository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.client', 'client')
@@ -19,9 +19,8 @@ export class OrderService {
       .getOne();
   }
 
-  static async create(data: Partial<Order>) {
+  async create(data: Partial<Order>): Promise<Order | null> {
     const targetClientId = Number(data.clientId);
-
     const order = this.repository.create({
       description: data.description,
       price: data.price,
@@ -29,17 +28,16 @@ export class OrderService {
       clientId: targetClientId,
       client: { id: targetClientId } as any,
     });
-
     const savedOrder = await this.repository.save(order);
-    return await this.getById(savedOrder.id);
+    return await this.findOne(savedOrder.id);
   }
 
-  static async update(id: number, data: Partial<Order>) {
+  async update(id: number, data: Partial<Order>): Promise<Order | null> {
     await this.repository.update(id, data);
-    return await this.getById(id);
+    return await this.findOne(id);
   }
 
-  static async delete(id: number) {
-    return await this.repository.delete(id);
+  async delete(id: number): Promise<void> {
+    await this.repository.delete(id);
   }
 }
