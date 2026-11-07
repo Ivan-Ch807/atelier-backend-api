@@ -8,6 +8,7 @@ export class OrderResponseDTO {
   clientId: number;
   clientName?: string;
   createdAt: Date;
+  updatedAt: Date;
 
   constructor(order: Order) {
     this.id = order.id;
@@ -19,5 +20,6 @@ export class OrderResponseDTO {
       this.clientName = order.client.fullName;
     }
     this.createdAt = order.created_at;
+    this.updatedAt = order.updated_at;
   }
 }

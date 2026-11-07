@@ -217,3 +217,138 @@ export class OrderResponseDTO {
 ### 3.4. Оновлення замовлення та переприв'язка клієнта (PATCH /v1/orders/:id)
 
 ![PATCH Order DTO](docs/screenshots/patch_orders_DTO.jpg)
+
+<br />
+<hr />
+<br />
+
+# Звіт з лабораторно-практичної роботи №8: Розробка клієнтської частини (Frontend) на React та інтеграція з REST API
+
+**Предметна область:** Інформаційна система ательє з пошиття одягу (**AtelierHub**)
+
+---
+
+## 1. Короткий опис реалізованого функціоналу
+
+- **Авторизація та стан (Zustand + Axios):** Реалізовано збереження JWT-токена авторизації у `authStore` (Zustand з розширенням `persist`). До Axios додано динамічний request-інтерцептор для підстановки заголовка `Authorization: Bearer <token>`.
+- **Маршрутизація (TanStack Router):** Створено захищені та публічні роути: сторінку входу (`/`), сторінку «Управління Клієнтами» (`/clients`) та сторінку «Управління Замовленнями» (`/orders`).
+- **Управління даними (TanStack Query):** Реалізовано CRUD-операції з автоматичною інвалідацією кешу після створення/редагування/видалення записів та сортуванням за датою оновлення.
+- **Форми та валідація (React Hook Form + Zod):** Побудовано типбезпечні форми з клієнтською валідацією полів та обробкою HTTP 400 помилок унікальності (дублікатів) від бекенду.
+
+---
+
+## 2. Приклади ключового коду
+
+### 2.1. Конфігурація Axios з динамічним інтерцептором токена (`src/lib/axios.ts`)
+
+```typescript
+import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@/store/authStore';
+
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      config.headers.Authorization = authHeader;
+    }
+    return config;
+  },
+  (error: AxiosError) => Promise.reject(error),
+);
+
+export default apiClient;
+```
+
+---
+
+### 2.2. Хуки для TanStack Query (src/features/clients/api.ts)
+
+```import { useQuery, useMutation, useQueryClient, type UseQueryResult, type UseMutationResult } from '@tanstack/react-query';
+import apiClient from '@/lib/axios';
+import { Client, CreateClientInput, UpdateClientInput } from './types';
+
+export const useClients = (): UseQueryResult<Client[], Error> =>
+  useQuery<Client[]>({
+    queryKey: ['clients'],
+    queryFn: async () => (await apiClient.get<Client[]>('/clients')).data,
+  });
+
+export const useCreateClient = (): UseMutationResult<Client, CreateClientInput Error,> => {
+  const queryClient = useQueryClient();
+  return useMutation<Client, CreateClientInput Error,>({
+    mutationFn: async (newClient) => (await apiClient.post<Client>('/clients', newClient)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+};
+```
+
+### 2.3. Схема валідації Zod (src/routes/clients.tsx)
+
+```import { z } from 'zod';
+
+const clientSchema = z.object({
+  fullName: z.string().min(2, 'ПІБ має містити як мінімум 2 символи'),
+  phone: z.string().min(6, 'Некоректний номер телефону'),
+  email: z.string().email('Некоректний email').or(z.literal('')),
+});
+
+type ClientFormData = z.infer<typeof clientSchema>;
+```
+
+---
+
+## 3. Особливості реалізації та виклики
+
+1. **Конфігурація ESLint v9 Flat Config та TSConfig (найбільш часозатратна):**  
+   Помилки парсингу системних роутів (`__root.tsx`), застарілість файлу `.eslintignore` в ESLint 9, застереження Fast Refresh та налаштування глобальних ігнорувань (`ignores`) у циклі `eslintConfig`.
+
+2. **Масові помилки строгої типізації TypeScript-ESLint (понад 40 помилок):**  
+   Відсутність явних типів повернення функцій у `api.ts` та роутах, незавершені проміси (`no-floating-promises`), а також суворі правила найменування модулів (`unicorn/prevent-abbreviations`).
+
+3. **Обробка серверних помилок унікальності (HTTP 400):**  
+   Відсутність виводу повідомлень про дублікати номерів телефонів у формі та накопичення помилок у мутаціях TanStack Query (вирішено за допомогою helper-функції `getErrorMessage()` та методів `.reset()`).
+
+4. **Автозаповнення даних та стилізація роутингу:**  
+   Примусове браузерне підставляння пошти адміна у форму клієнтів (виправлено через `autoComplete="off"`) та невідповідність стилів посилань `<Link>` повноцінним кнопкам через відсутність базового класу `.btn`.
+
+---
+
+## 4. Скріншоти результатів виконання
+
+### 4.1. Сторінка Авторизації (`/`)
+
+![Форма авторизації](docs/screenshots/Authorization_page.jpg)
+
+---
+
+### 4.2. Перевірка валідації та обробка помилок (HTTP 400)
+
+![Помилка валідації](docs/screenshots/Validation_error.jpg)
+
+---
+
+### 4.3. Управління Клієнтами (`/clients`)
+
+![Управління клієнтами](docs/screenshots/Clients_page.jpg)
+
+---
+
+### 4.4. Управління Замовленнями (`/orders`)
+
+![Управління замовленнями](docs/screenshots/Orders_page.jpg)
+
+---
+
+### 4.5. Інтеграція з REST API (DevTools Network)
+
+![DevTools Network](docs/screenshots/DevTools.jpg)

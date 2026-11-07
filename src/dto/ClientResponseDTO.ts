@@ -9,6 +9,7 @@ export class ClientResponseDTO {
   email: string | null;
   orders?: OrderResponseDTO[];
   createdAt: Date;
+  updatedAt: Date;
 
   constructor(client: Client) {
     this.id = client.id;
@@ -16,7 +17,7 @@ export class ClientResponseDTO {
     this.phone = client.phone;
     this.email = client.email || null;
     this.createdAt = client.created_at;
-
+    this.updatedAt = client.updated_at;
     if (client.orders && client.orders.length > 0) {
       this.orders = client.orders.map((order) => new OrderResponseDTO(order));
     }

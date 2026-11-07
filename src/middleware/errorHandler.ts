@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { CustomError } from '../utils/response/custom-error/CustomError';
+export const errorHandler = (err: any, req: Request, res: Response, _next: NextFunction) => {
+  const statusCode = err.HttpStatusCode || err.status || 500;
+  console.error('Backend Error Detailed Log:', err);
 
-export const errorHandler = (err: CustomError, req: Request, res: Response, next: NextFunction) => {
-  return res.status(err.HttpStatusCode).json(err.JSON);
+  return res.status(statusCode).json({
+    errorType: err.errorType || 'General',
+    errorMessage: err.message || 'Internal Server Error',
+    errors: err.errors || null,
+    errorRaw: err,
+  });
 };

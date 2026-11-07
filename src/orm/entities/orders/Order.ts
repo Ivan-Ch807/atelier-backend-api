@@ -24,11 +24,11 @@ export class Order {
   @Column({ length: 30, default: 'NEW' })
   status: string;
 
-  @Column({ name: 'client_id' })
+  @Column({ name: 'clientId' })
   clientId: number;
 
   @ManyToOne(() => Client, (client) => client.orders, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'client_id' })
+  @JoinColumn({ name: 'clientId' })
   client: Client;
 
   @CreateDateColumn()
